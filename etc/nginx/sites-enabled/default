@@ -1,0 +1,170 @@
+##
+
+server {
+        listen 80 default_server backlog=5000;
+        listen [::]:80 default_server ipv6only=on backlog=5000;
+        root /var/www/letstalkbitcoin/www;
+
+        # Add index.php to the list if you are using PHP
+        index index.php index.html index.htm;
+
+        server_name letstalkbitcoin.com www.letstalkbitcoin.com ltbcoin.com www.ltbcoin.com bitcoinsandgravy.com www.bitcoinsandgravy.com uncoinventional.com www.uncoinventional.com mindtomatter.org www.mindtomatter.org;
+
+    location /.well-known/acme-challenge {
+        root /var/www/letsencrypt;
+    }
+
+        location /api/v1 {
+                try_files $uri $uri/ =404;
+
+                rewrite ^/(.*)/$ /$1 redirect;
+                if (!-e $request_filename){
+                     rewrite ^(.*)$ /api.php?v=1&params=$1&$query_string last;
+                }
+
+
+        }
+	
+	location =/ {
+		if ($http_host ~* "^(.*)uncoinventional\.com$"){	
+		#	rewrite ^(.*)$ blog/uncoinventional-living last;
+			rewrite ^(.*)$ /index.php?params=blog/uncoinventional-living&$query_string last;
+		}
+
+                if ($http_host ~* "^(.*)mindtomatter\.org$"){
+                        rewrite ^(.*)$ /index.php?params=blog/mindtomatter&$query_string last;
+                }
+
+
+	}
+
+
+        location / {
+                try_files $uri $uri/ =404;
+
+                rewrite ^/(.*)/$ /$1 redirect;
+                if (!-e $request_filename){
+                
+        #            rewrite ^api/v1/(.*)$ /api.php?v=1&params=$1&$query_string last;
+                     rewrite ^(.*)$ /index.php?params=$1&$query_string last;
+                }
+        }
+
+
+
+       # error_page 500 502 503 504 /50x.html;
+       # location = /50x.html {
+       #         root /usr/share/nginx/html;
+       # }
+        userid         on;
+        userid_name    uid;
+        userid_domain  $host;
+        userid_path    /;
+        userid_expires 365d;
+        userid_p3p     'policyref="/w3c/p3p.xml", CP="CUR ADM OUR NOR STA NID"';
+
+        location ~ \.php$ {
+                try_files $uri =404;
+                fastcgi_split_path_info ^(.+\.php)(/.+)$;
+
+                fastcgi_pass 127.0.0.1:9000;
+                fastcgi_index index.php;
+                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+		fastcgi_read_timeout 3600;
+
+#                fastcgi_cache  microcache;
+#                fastcgi_cache_key $scheme$host$request_uri$request_method$http_x_access_token$http_cookie$uid_got;
+        
+#	        fastcgi_cache_valid 200 301 302 30s;
+#                fastcgi_cache_use_stale updating error timeout invalid_header http_500;
+                fastcgi_pass_header Set-Cookie;
+                fastcgi_pass_header Cookie;
+                fastcgi_ignore_headers Cache-Control Expires Set-Cookie;
+                fastcgi_intercept_errors on;
+                include fastcgi_params;
+
+        }
+
+
+}
+
+server {
+
+	# SSL configuration
+	#
+	 listen 443 ssl default_server backlog=5000;
+	 listen [::]:443 ssl default_server ipv6only=on backlog=5000;
+
+	ssl    on;
+#	ssl_certificate    /var/www/letstalkbitcoin/ssl/letstalkbitcoin.com.cert;
+#	ssl_certificate_key    /var/www/letstalkbitcoin/ssl/letstalkbitcoin.com.key;	
+#	ssl_password_file /var/www/letstalkbitcoin/ssl/password;
+
+	ssl_certificate /etc/letsencrypt/live/letstalkbitcoin.com/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/keys/0000_key-certbot.pem;
+	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+#Disables all weak ciphers
+#	ssl_ciphers "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4";
+
+#	ssl_prefer_server_ciphers on;
+
+	root /var/www/letstalkbitcoin/www;
+	
+	# Add index.php to the list if you are using PHP
+	index index.php index.html index.htm;
+
+	server_name letstalkbitcoin.com www.letstalkbitcoin.com;
+
+
+	location /api/v1 {
+                try_files $uri $uri/ =404;
+
+                rewrite ^/(.*)/$ /$1 redirect;
+                if (!-e $request_filename){
+                     rewrite ^(.*)$ /api.php?v=1&params=$1&$query_string last;
+                }
+
+
+	}
+
+	location / {
+		try_files $uri $uri/ =404;
+
+                rewrite ^/(.*)/$ /$1 redirect;
+                if (!-e $request_filename){
+		     rewrite ^api/v1/(.*)$ /api.php?v=1&params=$1&$query_string last;
+                     rewrite ^(.*)$ /index.php?params=$1&$query_string last;
+                }
+	}
+
+	userid         on;
+	userid_name    uid;
+	userid_domain  $host;
+	userid_path    /;
+	userid_expires 365d;
+	userid_p3p     'policyref="/w3c/p3p.xml", CP="CUR ADM OUR NOR STA NID"';
+        
+        location ~ \.php$ {
+                try_files $uri =404;
+                fastcgi_split_path_info ^(.+\.php)(/.+)$;
+              
+                fastcgi_pass 127.0.0.1:9000;
+                fastcgi_index index.php;
+                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+
+                fastcgi_cache  microcache;
+                fastcgi_cache_key $scheme$host$request_uri$request_method$http_x_access_token$http_cookie$uid_got;
+		fastcgi_read_timeout 3600;
+		
+                fastcgi_cache_valid 200 301 302 30s;
+                fastcgi_cache_use_stale updating error timeout invalid_header http_500;
+                fastcgi_pass_header Set-Cookie;
+                fastcgi_pass_header Cookie;
+               fastcgi_ignore_headers Cache-Control Expires Set-Cookie;
+		fastcgi_intercept_errors on;
+                include fastcgi_params;
+
+        }
+}
+
+      
