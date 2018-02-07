@@ -1,0 +1,38 @@
+<IfModule mod_security.c>
+   SecFilterEngine Off
+   SecFilterScanPOST Off
+</IfModule>
+
+
+Options -MultiViews
+
+AddType video/mp4 mp4
+AddType video/mp4 m4v
+
+RewriteEngine on
+
+Header add Access-Control-Allow-Origin "*"
+RewriteCond %{HTTP_HOST} ^(.*)uncoinventional\.com$ [NC]
+RewriteCond %{REQUEST_URI} ^/$
+RewriteRule ^(.*)$ blog/uncoinventional-living
+
+#RewriteBase /labs/letstalkbitcoin/www
+RewriteRule ^dashboard/magic-words$ dashboard/blog/magic-words [L] [R=301] 
+RewriteCond %{HTTP_HOST} ^ltbcoin\.letstalkbitcoin\.com$ [NC]
+RewriteRule ^(.*) http://ltbcoin.com/$1 [L,R]
+
+
+RewriteRule ^api/v1/(.*)$ api.php?v=1&params=$1&%{QUERY_STRING} [L]
+RewriteCond %{SCRIPT_FILENAME} !api\.php$
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+#RewriteCond %{REQUEST_URI} !=/ltbserver-status-5810
+RewriteRule ^(.*)$ index.php?params=$1&%{QUERY_STRING} [L]
+
+
+php_value memory_limit 1000M
+php_value upload_max_filesize 100M
+php_value post_max_size 100M 
+php_value max_execution_time 2000
+
+
